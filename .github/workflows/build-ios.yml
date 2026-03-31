@@ -5,7 +5,7 @@ on:
 
 jobs:
   build:
-    runs-on: macos-13
+    runs-on: macos-latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -23,6 +23,12 @@ jobs:
 
       - name: Install Dependencies
         run: flutter pub get
+
+      - name: Fix iOS Deployment Target (Auto Patch)
+        run: |
+          sed -i '' -e 's/flutter_additional_ios_build_settings(target)/flutter_additional_ios_build_settings(target)\n      target.build_configurations.each do |config|\n        config.build_settings["IPHONEOS_DEPLOYMENT_TARGET"] = "12.0"\n      end/g' ios/Podfile
+          sed -i '' "s/^# platform :ios.*/platform :ios, '12.0'/g" ios/Podfile
+          sed -i '' "s/^platform :ios.*/platform :ios, '12.0'/g" ios/Podfile
 
       - name: Build iOS App
         run: flutter build ios --release --no-codesign
